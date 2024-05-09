@@ -4,7 +4,7 @@ CREATE TABLE users(
     email VARCHAR(255) NOT NULL,
     home_address TEXT,
     Education VARCHAR(512),
-    Experience ARCHAR(512),
+    Experience VARCHAR(512),
     pin TEXT,
     File_Name VARCHAR(255),
     state TEXT,

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Details</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css')}}">
+</head>
+<body>
+  <h3>User Details</h3>
+  <table border="1">
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Home Address</th>
+      <th>Education</th>
+      <th>Experience</th>
+      <th>Country</th>
+      <th>Action</th> <!-- Add Action header -->
+    </tr>
+    <tr>
+      <td>{{ username }}</td>
+      <td>{{ email }}</td>
+      <td>{{ home_address }}</td>
+      <td>{{ Education }}</td>
+      <td>{{ Experience }}</td>
+      <td>{{ country }}</td>
+      <td>
+        <form action="/delete_user" method="POST">
+          <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token }}"><br>
+    
+          <input type="hidden" id="user_id" name="user_id" value="{{ user_id }}">
+          <button type="submit">Delete Profile</button>
+      </form>
+      </td>
+    </tr>
+  </table>
+  
+
+
+
+  <script>
+    // Get the value of the email input field
+    var email = document.getElementById("email").value;
+  </script>
+
+
+  <h3>Update Information</h3>
+  <form action="/update_user" method="POST">
+
+    
+    <input type="hidden" id="user_id" name="user_id" value="{{ user_id }}">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" value="{{email}}"><br>  
+    
+    <label for="home_address">Home Address:</label>
+    <input type="text" id="home_address" name="home_address" value="{{ home_address }}"><br>
+
+    <label for="Education">Education:</label>
+    <input type="text" id="Education" name="Education" value="{{ Education }}"><br>
+
+    <label for="Experience">Experience:</label>
+    <input type="text" id="Experience" name="Experience" value="{{ Experience }}"><br>
+    
+    <label for="pin">Pin:</label>
+    <input type="text" id="pin" name="pin" value="{{ pin }}"><br>
+    
+    <label for="state">State:</label>
+    <input type="text" id="state" name="state" value="{{ state }}"><br>
+    
+    <label for="country">Country:</label>
+    <input type="text" id="country" name="country" value="{{ country }}"><br>
+    
+    <button type="submit">Update</button>
+  </form>
+
+  <h3>Upload Resume</h3>
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="file" id="file" name="file"><button>Upload</button><br>
+    <td><a href="{{ download_url }}">{{ File_Name }}</a></td>
+  </form>
+
+
+  <h2>Linkedin URL</h2>
+  <form id="pingForm">
+      <label for="urlInput">Enter URL</label>
+      <input type="text" id="urlInput" name="url">
+      <button>Reachable</button>  
+  </form> 
+  
+  <div id="pingResult"></div>
+  
+  <script>
+      document.getElementById('pingForm').addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent form submission
+          var url = document.getElementById('urlInput').value;
+          document.getElementById('urlInput').value = url;
+          fetch('/ping?url=' + encodeURIComponent(url))
+              .then(response => response.json()) // Parse response as JSON
+              .then(data => {
+                  document.getElementById('pingResult').innerText = data.message; // Display response message
+                   // Display input back to the user
+              })
+              .catch(error => {
+                  console.error('Error:', error);
+                  document.getElementById('pingResult').innerText = 'Error occurred. Please try again.';
+              });
+      });
+  </script>
+  
+
+
+
+
+  <!-- Logout button -->
+  <form action="/logout">
+    <button onclick="window.location.href='/'">Logout</button>
+  </form>
+  
+  <script>
+    // Submit delete form when the delete button is clicked
+    document.getElementById('deleteForm').addEventListener('submit', function(event) {
+      if (!confirm("Are you sure you want to delete this user?")) {
+        event.preventDefault(); // Prevent form submission if user cancels deletion
+      }
+    });
+  </script>
+</body>
+</html>

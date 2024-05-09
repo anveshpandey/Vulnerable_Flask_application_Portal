@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Details</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css')}}">
+</head>
+<body>
+  
+  <h1>Candidates Applied</h1>
+  <table border="1">
+    <tr>  
+      <th>Username</th>
+      <th>Email</th>
+      <th>Home Address</th>
+      <th>Education</th>
+      <th>Experience</th>
+      <th>Country</th>
+      <th>Resume</th>
+
+    </tr>
+    {% for user in users %}
+    <tr>
+      <td>{{ user[1] }}</td>
+      <td>{{ user[2] }}</td>
+      <td>{{ user[3] }}</td>
+      <td>{{ user[4] }}</td>
+      <td>{{ user[5] }}</td>
+      <td>{{ user[9] }}</td>
+      <td><a href="{{ get_presigned_file_url(user[7]) }}">{{ user[7] }}</a></td>
+ 
+    </tr>
+    {% endfor %}  
+  </table>
+
+
+  <!-- Logout button -->
+  <form action="/logout">
+    <button>Logout</button>
+  </form>
+  
+</body>
+</html>

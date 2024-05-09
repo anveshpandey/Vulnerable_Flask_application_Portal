@@ -9,27 +9,27 @@ import logging
 from uploads.handlers import create_connection, allowed_file
 import re
 
-# Username Regex
-username_pattern = r'^(([a-zA-Z0-9._])\2*|)+$'
-
-
-
-# Test the regex patterns
-def test_regex(pattern, value):
-    return bool(re.match(pattern, value))
-
 
 app = Flask(__name__)
 app.secret_key = ''
-# Set up logging
 logging.basicConfig(filename='app.log', level=logging.INFO)
 
+username_pattern = r'^(([a-zA-Z0-9._])\2*|)+$'
+S3_BUCKET = ''
+REGION_NAME = ''
+s3 = boto3.client('s3',
+                  aws_access_key_id='',
+                  aws_secret_access_key='',
+                  region_name=REGION_NAME,
+                  config=Config(signature_version='s3v4'))
+
+def test_regex(pattern, value):
+    return bool(re.match(pattern, value))
 
 
 def get_presigned_file_url(provided_file_name):
     if not provided_file_name:
         return
-
     return s3.generate_presigned_url(
         'get_object',
         Params={
@@ -40,22 +40,6 @@ def get_presigned_file_url(provided_file_name):
         ExpiresIn= None,
         HttpMethod='GET',  # Specify the HTTP method (GET)
     )
-
-
-
-
-
-S3_BUCKET = ''
-
-# Configure boto3 S3 client 
-REGION_NAME = ''
-
-# Create an S3 client with the specified region
-s3 = boto3.client('s3',
-                  aws_access_key_id='',
-                  aws_secret_access_key='',
-                  region_name=REGION_NAME,
-                  config=Config(signature_version='s3v4'))
 
 
 @app.route('/upload', methods=['POST', 'TRACE'])
@@ -78,8 +62,6 @@ def upload_file():
             
             s3.upload_file(file_path, S3_BUCKET, file.filename)
             
-
-            # Insert filename into the database
             conn = create_connection() 
             if conn is not None:
                 cursor = conn.cursor()
@@ -89,8 +71,6 @@ def upload_file():
                 session['File_Name']=file.filename
 
                 flash(f'{file.filename} was successfully uploaded', 'success')
-            
-            # Redirect to the dashboard route
             return redirect('/dashboard')
         except Exception as e:
             return jsonify({'error': str(e)})
@@ -103,8 +83,7 @@ def upload_file():
 # Route for the login page
 @app.route('/')
 def home():
-    return render_template('home.html')
-    
+    return render_template('home.html')    
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -146,7 +125,6 @@ def login():
     else:
         return render_template('login.html')
 
-
 # Route for the registration page
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -174,14 +152,14 @@ def register():
                 if existing_user:
                     return render_template('register.html', error='Username or email already exists')
 
-                # Insert the new user into the database
+               
                 cursor.execute('INSERT INTO users (username, email, password) VALUES (%s, %s, %s)', (username, email, hashed_password))
                 conn.commit()
                 conn.close()
 
                 return redirect(url_for('login'))
             except mysql.connector.Error as e:
-                # Handle database error
+               
                 logging.error(f"Database error: {str(e)}")
                 return render_template('register.html', error=f"Database error: {str(e)}")
             finally:
@@ -193,8 +171,6 @@ def register():
     else:
         return render_template('register.html')
 
-
-# # Route for the recruiter pager
 @app.route('/recruiter')
 def recruiter():
     if 'user_id' in session: 
@@ -215,16 +191,14 @@ def recruiter():
                     flash('Failed to delete user', 'error')
                     return redirect('/login')
             else:
-                # Handle connection error
+                
                 logging.error('Failed to connect to the database')
                 flash('Failed to connect to the database', 'error')
                 return render_template('error.html')
         else: return render_template('forbidden1.html')
     else:
         return render_template('forbidden.html')    
-
-    
-
+   
 @app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():    
     if 'user_id' in session:
@@ -242,10 +216,7 @@ def dashboard():
                     state=session['state']  
                     country=session['country'] 
                     download_url=get_presigned_file_url(File_Name)
-
-
                         
-                        # Pass user data to the template
                     return render_template('dashboard.html',username=username , user_id=user_id,
                                             email=email,
                                             home_address=home_address,
@@ -253,18 +224,16 @@ def dashboard():
                                             Experience=Experience,state=state,
                                             country=country)
         else:
-            # User is not logged in, redirect to login page
             return redirect(url_for('login'))
     else:
         return render_template('forbidden1.html')
 
 i_i=0o35
-# Route for updating user information
 @app.route('/update_user', methods=['POST'])  # Corrected method specification
 def update_user():      
     if 'user_id' in session:
         if request.method == 'POST':
-            # Get the updated information from the form
+            
             user_id = request.form.get('user_id')
             username = request.form.get('username')
             email = request.form.get('email')
@@ -275,9 +244,7 @@ def update_user():
             state = request.form.get('state')
             country = request.form.get('country')
 
-            # Update the session data with the new information
-            
-            
+            # Update the session data with the new information   
             session['username'] = username
             session['email'] = email
             session['home_address'] = home_address
@@ -286,31 +253,23 @@ def update_user():
             session['pin'] = pin
             session['state'] = state
             session['country'] = country
-
-            # Update the database with the new information
+           
             conn = create_connection()
             try:
-                if conn is not None:
-                        
+                if conn is not None:    
                         cursor = conn.cursor()
                         cursor.execute('UPDATE users SET id=%s, pin=%s, email=%s,Education=%s, Experience=%s, home_address=%s, state=%s, country=%s WHERE id=%s', ( user_id, pin, email,education,experience, home_address, state, country, session['user_id']))
                         conn.commit()
                         conn.close()    
                 else:
-                    # Handle connection error
                     logging.error('Failed to connect to the database')
-                    return render_template('login.html', error='Failed to connect to the database')
-
-                # Redirect back to the dashboard page after updating
+                    return render_template('login.html', error='Failed to connect to the database')  
                 return redirect(url_for('dashboard'))
-            
             except mysql.connector.Error as e:
                 # Handle database error
                 logging.error(f"Database error: {e}")
                 flash('Failed to delete user', 'error')
-                return redirect('/login')   
-
-            
+                return redirect('/login')           
     else:
         return render_template('forbidden1.html')
 
@@ -318,79 +277,50 @@ def update_user():
 
 @app.route('/ping', methods=['POST', 'GET'])
 def ping():
-    # Check if user is logged in
+   
     if 'user_id' in session:
-        
-
         url = request.args.get('url')
         if not url:
             return jsonify({'error': 'URL parameter is missing'}), 400
 
-        # Create a temporary file to store the output of the ping command
         temp_file = '/tmp/ping_output.txt'
-
         ping_command = f'ping -c 4 {url} > {temp_file}'
-
         os.system(ping_command)
-
-        # Read the contents of the temporary file
         with open(temp_file, 'r') as file:
             output = file.read()
-
-        # Check if the output contains any data
-        if output.strip():
-            # If the output is not empty, return it as part of the response
+        if output.strip(): 
             return jsonify({'message': output}), 200
-        else:
-            # If the output is empty, assume that the ping failed
+        else: 
             return jsonify({'message': 'Ping failed'}), 500
     else:
-        # User is not authorized, render forbidden page
         return render_template('forbidden1.html')
-
-
 
 @app.route('/delete_user', methods=['POST', 'GET'])
 def delete_user():
     if 'user_id' in session:  # Check if the user is logged in
         user_id = request.form.get('user_id')  # Retrieve user ID from form data
 
-        # Connect to the database
+        
         conn = create_connection()
         if conn is not None:
             try:
-                cursor = conn.cursor()
-
-                # Execute the SQL query to delete the user using parameterized query
+                cursor = conn.cursor() 
                 q = 'DELETE FROM users WHERE id = %s'
                 cursor.execute(q, (user_id,))
-
-                
-                # Commit the changes to the database
                 conn.commit()
-
-
-                # Close the cursor and database connection
-            
                 conn.close()
-
-                # Redirect to the login page after successful deletion
                 return redirect('/logout')
-
             except mysql.connector.Error as e:
-                # Handle database error
+               
                 logging.error(f"Database error: {e}")
                 flash('Failed to delete user', 'error')
                 return redirect('/login')
-
         else:
-            # Handle connection error
+            
             logging.error('Failed to connect to the database')
             flash('Failed to connect to the database', 'error')
             return redirect('/login')
-
-    else:
-        # User is not authorized, render forbidden page
+    else:   
         return render_template('forbidden.html')
    
 
@@ -411,17 +341,11 @@ e_e=0b1011# Specify the path to save the PDF
 # f.write(pdf)
 #return 'PDF generated and saved successfully!'
 
-
-   
-
-
 @app.route('/logout')
 def logout():
-    # Clear the session
+   
     session.clear()
-    # Create a response object for redirecting to login page
     response = redirect(url_for('login'))
-    # Set response headers to prevent caching
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'

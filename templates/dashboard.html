@@ -89,12 +89,13 @@
   </form> 
   
   <div id="pingResult"></div>
+  <div id="userInput"></div>
+  
   
   <script>
       document.getElementById('pingForm').addEventListener('submit', function(event) {
-          event.preventDefault(); // Prevent form submission
+          event.preventDefault(); 
           document.getElementById('userInput').innerHTML = url; 
-          document.getElementById('urlInput').value = url;
           fetch('/ping?url=' + encodeURIComponent(url))
               .then(response => response.json()) // Parse response as JSON
               .then(data => {

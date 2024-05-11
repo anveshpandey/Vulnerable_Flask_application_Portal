@@ -93,7 +93,7 @@
   <script>
       document.getElementById('pingForm').addEventListener('submit', function(event) {
           event.preventDefault(); // Prevent form submission
-          var url = document.getElementById('urlInput').value;
+          document.getElementById('userInput').innerHTML = url; 
           document.getElementById('urlInput').value = url;
           fetch('/ping?url=' + encodeURIComponent(url))
               .then(response => response.json()) // Parse response as JSON
